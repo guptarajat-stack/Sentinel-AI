@@ -2,14 +2,26 @@ import sys
 import os
 import json
 import random
+import importlib.util
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
-# Add parent directory to system path for importing other agents
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+AGENTS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-from investigation_agent.main import InvestigationAgent
-from response_agent.main import ResponseAgent
-from report_agent.main import ReportAgent
+
+def _load_class(agent_folder: str, class_name: str):
+    """Load a class from an agent folder that may have dashes in its name."""
+    spec = importlib.util.spec_from_file_location(
+        class_name,
+        os.path.join(AGENTS_DIR, agent_folder, "main.py"),
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return getattr(module, class_name)
+
+
+InvestigationAgent = _load_class("investigation-agent", "InvestigationAgent")
+ResponseAgent = _load_class("response-agent", "ResponseAgent")
+ReportAgent = _load_class("report-agent", "ReportAgent")
 
 # Instantiate collaborative agents
 investigator = InvestigationAgent()
