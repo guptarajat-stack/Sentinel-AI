@@ -54,5 +54,20 @@ services:
     depends_on:
       - backend
 
+  log-simulator:
+    build:
+      context: ./log-simulator
+      dockerfile: ./docker/Dockerfile
+    container_name: soc-log-simulator
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://postgres:password123@db:5432/ai_security_soc?schema=public
+      - SIMULATOR_BENIGN_INTERVAL_MS=2000
+      - SIMULATOR_ATTACK_INTERVAL_MIN=3.0
+      - SIMULATOR_ENABLE_DB=true
+      - SIMULATOR_ENABLE_STDOUT=true
+    depends_on:
+      - db
+
 volumes:
   pgdata:
