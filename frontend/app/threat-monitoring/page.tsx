@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { getSocket, type RawAlert } from '../../lib/socket';
 import Link from 'next/link';
 
 // Mock logs generator bank
@@ -41,10 +42,10 @@ export default function ThreatMonitoringPage() {
   const [logs, setLogs] = useState<{ id: number; timestamp: string; content: string; sev: string }[]>(() =>
     Array.from({ length: 15 }, (_, i) => generateRandomLog(i))
   );
-  const [activeDetections] = useState([
-    { id: 'INC-81072', title: 'Brute Force Attack', type: 'SSH Brute Force', severity: 'HIGH', confidence: '97%', status: 'Active', time: 'Just Now' },
-    { id: 'INC-74910', title: 'SQL Injection attempt', type: 'SQL Injection', severity: 'HIGH', confidence: '94%', status: 'Investigating', time: '8m ago' },
-    { id: 'INC-38102', title: 'Gateway Port Scan', type: 'Port Scan', severity: 'MEDIUM', confidence: '88%', status: 'Resolved', time: '1h ago' }
+  const [activeDetections, setActiveDetections] = useState([
+    { id: 'INC-81072', title: 'Brute Force Attack',   type: 'SSH Brute Force', severity: 'HIGH',   confidence: '97%', status: 'Active',        time: 'Just Now' },
+    { id: 'INC-74910', title: 'SQL Injection attempt', type: 'SQL Injection',   severity: 'HIGH',   confidence: '94%', status: 'Investigating', time: '8m ago'   },
+    { id: 'INC-38102', title: 'Gateway Port Scan',    type: 'Port Scan',       severity: 'MEDIUM', confidence: '88%', status: 'Resolved',      time: '1h ago'   },
   ]);
 
   const terminalEndRef = useRef<HTMLDivElement>(null);
@@ -72,6 +73,43 @@ export default function ThreatMonitoringPage() {
 
     return () => clearInterval(interval);
   }, [isPlaying]);
+
+  // Live alerts from agent pipeline via WebSocket
+  useEffect(() => {
+    const socket = getSocket();
+
+    const onNewAlert = (alert: RawAlert) => {
+      const id = `INC-${Math.floor(Math.random() * 90000 + 10000)}`;
+      const typeMap: Record<string, string> = {
+        'Brute Force SSH':   'SSH Brute Force',
+        'SQL Injection WAF': 'SQL Injection',
+        'Port Scan Detect':  'Port Scan',
+      };
+      const entry = {
+        id,
+        title: alert.rule_name,
+        type: typeMap[alert.rule_name] ?? alert.rule_name,
+        severity: alert.severity?.toUpperCase() ?? 'MEDIUM',
+        confidence: '—',
+        status: 'Active',
+        time: 'Just Now',
+      };
+      setActiveDetections(prev => [entry, ...prev].slice(0, 10));
+
+      // Also push a real log line into the terminal feed
+      const now = new Date().toISOString().split('T')[1].slice(0, 8);
+      const ip = alert.context?.ip || alert.context?.client_ip || '0.0.0.0';
+      setLogs(prev => [...prev.slice(-59), {
+        id: nextLogId.current++,
+        timestamp: now,
+        content: `[LIVE AGENT ALERT] ${alert.raw_log || alert.rule_name} — src=${ip}`,
+        sev: alert.severity === 'CRITICAL' ? 'Critical' : alert.severity === 'HIGH' ? 'High' : 'Medium',
+      }]);
+    };
+
+    socket.on('new-alert', onNewAlert);
+    return () => { socket.off('new-alert', onNewAlert); };
+  }, []);
 
   return (
     <div className="page-wrapper animate-fade-in" style={{ paddingBottom: '40px' }}>

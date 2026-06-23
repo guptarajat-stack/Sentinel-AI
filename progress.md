@@ -82,7 +82,7 @@
 |-----|------|--------|-----------------|
 | Day 19 | Next.js Setup + UI Shell (Sidebar, Layout, Tailwind) | ✅ Done | `frontend/components/Sidebar.tsx`, `TopBar.tsx`, `app/layout.tsx` — full dark-mode shell |
 | Day 20 | Dashboard Home & Metrics Cards | ✅ Done | `frontend/app/dashboard/page.tsx` — security score, 4 stat cards, AI insights panel |
-| Day 21 | Real-Time Incident Feed via WebSockets (socket.io-client) | ⚠️ Partial | `frontend/app/incidents/page.tsx` exists with filter/table UI; no `socket.io-client` wiring |
+| Day 21 | Real-Time Incident Feed via WebSockets (socket.io-client) | ✅ Done | `frontend/lib/socket.ts` singleton; incidents page listens `new-alert`, prepends live rows with LIVE badge + pulse status pill; threat-monitoring page also wired |
 | Day 22 | Data Visualization — Charts (Recharts / Chart.js) | ⚠️ Partial | Dashboard has inline SVG area chart + world map; no Recharts library integrated |
 | Day 23 | Incident Details Page (`/incidents/[id]` + AI analysis view) | ✅ Done | `frontend/app/incidents/[id]/page.tsx` — forensic timeline, raw logs, CLI shell — fully built |
 | Day 24 | Raw Log Viewer (paginated table, colored failed logins) | ❌ Not Started | No dedicated log viewer page; `frontend/lib/` is empty gitkeep |
