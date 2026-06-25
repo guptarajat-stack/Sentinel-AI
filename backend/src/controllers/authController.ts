@@ -1,10 +1,8 @@
 import { Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
 import { AuthRequest } from "../middleware/auth";
-
-const prisma = new PrismaClient();
+import { prisma } from "../lib/prisma";
 
 interface RegisterRequest {
   email: string;
@@ -17,17 +15,20 @@ interface LoginRequest {
   password: string;
 }
 
+const JWT_SECRET         = process.env.JWT_SECRET         || 'super-secret-jwt-token';
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'super-secret-refresh-token';
+
 const generateTokens = (userId: number, email: string, role: string) => {
   const accessToken = jwt.sign(
     { id: userId, email, role },
-    process.env.JWT_SECRET || "",
-    { expiresIn: process.env.JWT_EXPIRE || "7d" }
+    JWT_SECRET,
+    { expiresIn: '7d' }
   );
 
   const refreshToken = jwt.sign(
     { id: userId, email, role },
-    process.env.JWT_REFRESH_SECRET || "",
-    { expiresIn: process.env.JWT_REFRESH_EXPIRE || "30d" }
+    JWT_REFRESH_SECRET,
+    { expiresIn: '30d' }
   );
 
   return { accessToken, refreshToken };

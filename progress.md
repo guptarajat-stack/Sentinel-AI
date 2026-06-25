@@ -111,9 +111,12 @@
 
 ## Honest Gap Summary
 
-### Backend is mostly stubs (Phase 2 critical gaps)
-- `backend/src/routes/`, `controllers/`, `services/`, `middleware/` — all empty `.gitkeep`
-- Need: real route files, JWT auth, pagination, `/api/logs` endpoint
+### Backend — now complete
+- Auth was pre-built (register, login, refresh, logout, JWT middleware)
+- Incidents CRUD: `GET /api/incidents` (filter+paginate), `GET /api/incidents/stats`, `GET /api/incidents/:id`, `POST /api/incidents`, `PATCH /api/incidents/:id`
+- Logs: `GET /api/logs` (filter+paginate), `POST /api/logs`
+- `/api/agents/alert` now persists to DB AND emits socket — previously socket-only
+- Prisma singleton in `lib/prisma.ts`; socketService in `services/socketService.ts`
 
 ### Agents use no AI libraries (Phase 3 critical gaps)
 - No LangChain, no LangGraph, no Pydantic, no OpenAI API calls
